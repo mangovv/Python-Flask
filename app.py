@@ -1,9 +1,12 @@
-from flask import Flask, render_template, redirect, url_for
+from flask import Flask, render_template, redirect, url_for, request
 from flask_bootstrap import Bootstrap
 from flask_wtf import FlaskForm
 from wtforms import StringField, PasswordField, BooleanField
 from wtforms.validators import InputRequired, Email, Length
 from flask_sqlalchemy import SQLAlchemy
+import os
+
+
 
 #CREATE DATABASE pythonflask
 #the next two commands are in the terminal
@@ -15,6 +18,7 @@ app.config['SECRET_KEY'] = 'I<3ECE1779'
 app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://root:password@localhost:3306/pythonflask?charset=utf8mb4'
 Bootstrap(app)
 db = SQLAlchemy(app)
+APP_ROOT = os.path.dirname(os.path.abspath(__file__))
 
 class User(db.Model):
     id = db.Column(db.Integer, primary_key = True, autoincrement= True)
@@ -72,7 +76,23 @@ def dashboard():
 
 @app.route('/test')
 def test():
-    return render_template("test.html")
+    return render_template("upload.html")
+
+@app.route('/upload',methods=["POST"])
+def upload():
+    target = os.path.join(APP_ROOT, "images\\")
+    #print(target)
+    if not os.path.isdir(target):
+        os.mkdir(target)
+    for file in request.files.getlist("file"):
+        #print(file)
+        filename = file.filename
+        destination = "/".join(target).join(filename)
+        print('****************************************'+filename+'***************************************')
+        print(destination)
+        file.save(destination)
+    return render_template("complete.html")
+
 
 if __name__ == '__main__':
     app.run(debug=True)
